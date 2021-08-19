@@ -60,7 +60,7 @@ namespace Pant
 			File.WriteAllText("MachineStatus.txt", SerializeStatus());
 		}
 
-		private string SerializeStatus()
+		public string SerializeStatus()
 		{
 			JsonSerializerOptions serializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
 			{

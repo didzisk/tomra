@@ -25,12 +25,16 @@ namespace Pant
 					case "EXIT":
 						return;
 					case "M":
+						PayOutMoney();
 						break;
 					case "L":
 						DoLottery(cheat: false);
 						break;
 					case "MOTHERLODE": //from The Sims
 						DoLottery(cheat: true);
+						break;
+					case "BOSS":
+						ShowInternalStats();
 						break;
 					default:
 						_machine.AcceptContainer(command);
@@ -39,6 +43,30 @@ namespace Pant
 			}
 
         }
+
+		private void ShowInternalStats()
+		{
+			Console.WriteLine("----------------------------------------------------------");
+			Console.WriteLine("Internal stats");
+			Console.WriteLine(_machine.SerializeStatus());
+			Console.WriteLine("----------------------------------------------------------");
+			Console.WriteLine("Press <enter> to continue");
+			Console.ReadLine();
+		}
+
+		private void PayOutMoney()
+		{
+			int money = _machine.PayForContainers();
+			Console.ForegroundColor = ConsoleColor.Green;
+			Console.WriteLine("----------------------------------------------------------");
+			Console.WriteLine("Receipt");
+			Console.WriteLine($"Thank you for recycling, you receive {money} kr!");
+			Console.WriteLine("----------------------------------------------------------");
+			Console.ResetColor();
+			Console.WriteLine("Press <enter> to continue");
+			Console.ReadLine();
+
+		}
 
 		private void DoLottery(bool cheat)
 		{
@@ -52,8 +80,7 @@ namespace Pant
 				if (Console.ReadLine()?.ToUpper(CultureInfo.InvariantCulture) == "Y")
 				{
 					var numTickets = _machine.GetNumTickets();
-					var money = 0;
-					money = cheat ? _machine.WinLottery() : _machine.DoLottery(numTickets);
+					int money = cheat ? _machine.WinLottery() : _machine.DoLottery(numTickets);
 					if (money > 0)
 					{
 						Console.ForegroundColor = ConsoleColor.Green;
@@ -65,8 +92,12 @@ namespace Pant
 					}
 					else
 					{
+						Console.WriteLine("----------------------------------------------------------");
 						Console.WriteLine("Sorry, better luck next time!");
+						Console.WriteLine("----------------------------------------------------------");
 					}
+					Console.WriteLine("Press <enter> to continue");
+					Console.ReadLine();
 				}
 			}
 
@@ -94,6 +125,9 @@ namespace Pant
 				_machine.GetCurrentState()
 				.Select(x => $"{x.Count} x {x.Price} kr  = {x.Price * x.Count} kr {x.Name}"
 				)));
+			Console.WriteLine("------------------");
+			var money = _machine.GetCurrentState().Sum(x => x.Price * x.Count);
+			Console.WriteLine($"Total: {money} kr");
 		}
 	}
 }

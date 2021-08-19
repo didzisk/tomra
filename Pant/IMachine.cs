@@ -15,5 +15,6 @@ namespace Pant
 		int WinLottery();
 		IEnumerable<ContainerDef> GetAcceptableContainers();
 		IEnumerable<StatusLineDto> GetCurrentState();
+		string SerializeStatus();
 	}
 }
