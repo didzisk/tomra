@@ -10,8 +10,10 @@ namespace Pant
 	{
 		void AcceptContainer(string code);
 		int PayForContainers();
+		int GetNumTickets();
 		int DoLottery(int numTickets);
 		int WinLottery();
-		void PersistState();
+		IEnumerable<ContainerDef> GetAcceptableContainers();
+		IEnumerable<StatusLineDto> GetCurrentState();
 	}
 }

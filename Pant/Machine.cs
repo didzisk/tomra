@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Pant
@@ -40,6 +43,7 @@ namespace Pant
 				{
 					_state.TotalState[code] = 1;
 				}
+				File.WriteAllText("MachineStatus.txt", SerializeStatus());
 			}
 		}
 
@@ -53,14 +57,36 @@ namespace Pant
 			}
 			_state.PaidOut += paidAmount;
 			_state.Balance += valueOfContainers - paidAmount;
+			File.WriteAllText("MachineStatus.txt", SerializeStatus());
+		}
+
+		private string SerializeStatus()
+		{
+			JsonSerializerOptions serializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+			{
+				IncludeFields = true,
+				WriteIndented = true
+			};
+			return JsonSerializer.Serialize(_state, serializerOptions);
+
+		}
+
+		private int GetCurrentPayout()
+		{
+			return _state.CurrentState.Sum(kvp => _settings.AcceptableContainers[kvp.Key].Price * kvp.Value);
 		}
 
 		public int PayForContainers()
 		{
-			var currentPayout =
-				_state.CurrentState.Sum(kvp => _settings.AcceptableContainers[kvp.Key].Price * kvp.Value);
+			var currentPayout = GetCurrentPayout();
 			CloseSession(currentPayout);
 			return currentPayout;
+		}
+
+		public int GetNumTickets()
+		{
+			var currentPayout = GetCurrentPayout();
+			return (int)(currentPayout / _settings.LotteryTicketPrice); //ignore div by zero
 		}
 
 		public int DoLottery(int numTickets)
@@ -90,9 +116,17 @@ namespace Pant
 			return 0;
 		}
 
-		public void PersistState()
+		public IEnumerable<ContainerDef> GetAcceptableContainers()
 		{
-			throw new NotImplementedException();
+			return _settings.AcceptableContainers.Values;
+		}
+
+		public IEnumerable<StatusLineDto> GetCurrentState()
+		{
+			return from acc in _settings.AcceptableContainers
+				join cur in _state.CurrentState on acc.Key equals cur.Key into gj
+				from subCur in gj.DefaultIfEmpty()
+				select new StatusLineDto(Code: acc.Value.Code, Price: acc.Value.Price, Name: acc.Value.Name, Count: subCur.Value);
 		}
 
 	}

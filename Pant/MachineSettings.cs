@@ -10,6 +10,7 @@ namespace Pant
 	{
 		public Dictionary<string, ContainerDef> AcceptableContainers { get; init; }
 		public int InverseLotteryChance { get; init; }
+		public decimal LotteryTicketPrice { get; init; }
 		public int LotteryPayout { get; init; }
 	}
 }
