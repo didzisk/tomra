@@ -9,8 +9,9 @@ namespace Pant
 	public interface IMachine
 	{
 		void AcceptContainer(string code);
-		int PayMoney();
-		bool DoLottery();
+		int PayForContainers();
+		int DoLottery(int numTickets);
+		int WinLottery();
 		void PersistState();
 	}
 }

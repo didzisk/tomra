@@ -9,5 +9,7 @@ namespace Pant
 	public class MachineSettings
 	{
 		public Dictionary<string, ContainerDef> AcceptableContainers { get; init; }
+		public int InverseLotteryChance { get; init; }
+		public int LotteryPayout { get; init; }
 	}
 }

@@ -45,27 +45,49 @@ namespace Pant
 
 		private void CloseSession(int paidAmount)
 		{
+			var valueOfContainers =
+				_state.CurrentState.Sum(kvp => _settings.AcceptableContainers[kvp.Key].Price * kvp.Value);
 			foreach (var key in _state.CurrentState.Keys)
 			{
 				_state.CurrentState[key] = 0;
 			}
-
 			_state.PaidOut += paidAmount;
+			_state.Balance += valueOfContainers - paidAmount;
 		}
 
-		public int PayMoney()
+		public int PayForContainers()
 		{
-			//calculate payout
 			var currentPayout =
-				_state.CurrentState
-					.Sum(kvp => _settings.AcceptableContainers[kvp.Key].Price * kvp.Value);
+				_state.CurrentState.Sum(kvp => _settings.AcceptableContainers[kvp.Key].Price * kvp.Value);
 			CloseSession(currentPayout);
 			return currentPayout;
 		}
 
-		public bool DoLottery()
+		public int DoLottery(int numTickets)
 		{
-			throw new NotImplementedException();
+			Random rnd = new Random();
+			for (int i = 0; i < numTickets; i++)
+			{
+				//Ignoring the possibly multiple winning tickets
+				var x = rnd.Next(1, _settings.InverseLotteryChance);
+				if (x == 1)
+				{
+					//ignoring impurity of the function
+					return WinLottery();
+				}
+			}
+			return LoseLottery();
+		}
+
+		public int WinLottery()
+		{
+			CloseSession(_settings.LotteryPayout);
+			return _settings.LotteryPayout;
+		}
+		public int LoseLottery()
+		{
+			CloseSession(0);
+			return 0;
 		}
 
 		public void PersistState()
