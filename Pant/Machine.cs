@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Pant
@@ -44,6 +45,7 @@ namespace Pant
 					_state.TotalState[code] = 1;
 				}
 				File.WriteAllText("MachineStatus.txt", SerializeStatus());
+				Thread.Sleep(_settings.AcceptableContainers[code].MsToProcess); //could "await" here, but I have no other thread waiting for me
 			}
 		}
 

@@ -11,5 +11,6 @@ namespace Pant
 		public string Code { get; init; }
 		public string Name { get; init; }
 		public int Price { get; init; }
+		public int MsToProcess { get; init; } //inverse of "cans per second"
 	}
 }
