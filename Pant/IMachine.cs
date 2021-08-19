@@ -16,5 +16,6 @@ namespace Pant
 		IEnumerable<ContainerDef> GetAcceptableContainers();
 		IEnumerable<StatusLineDto> GetCurrentState();
 		string SerializeStatus();
+		public string StatusFileName { get; }
 	}
 }

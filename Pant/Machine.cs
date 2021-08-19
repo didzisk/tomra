@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -19,9 +20,15 @@ namespace Pant
 		{
 			_settings = settings;
 			_state = new MachineState { CurrentState = new Dictionary<string, int>(), TotalState = new Dictionary<string, int>() };
+			StatusFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+				"MachineStatus.txt");
 		}
 
+
+
 		public MachineState State => _state;
+
+		public string StatusFileName { get; }
 
 		public void AcceptContainer(string code)
 		{
@@ -44,7 +51,8 @@ namespace Pant
 				{
 					_state.TotalState[code] = 1;
 				}
-				File.WriteAllText("MachineStatus.txt", SerializeStatus());
+
+				File.WriteAllText(StatusFileName, SerializeStatus());
 				Thread.Sleep(_settings.AcceptableContainers[code].MsToProcess); //could "await" here, but I have no other thread waiting for me
 			}
 		}
@@ -59,7 +67,7 @@ namespace Pant
 			}
 			_state.PaidOut += paidAmount;
 			_state.Balance += valueOfContainers - paidAmount;
-			File.WriteAllText("MachineStatus.txt", SerializeStatus());
+			File.WriteAllText(StatusFileName, SerializeStatus());
 		}
 
 		public string SerializeStatus()
@@ -70,7 +78,6 @@ namespace Pant
 				WriteIndented = true
 			};
 			return JsonSerializer.Serialize(_state, serializerOptions);
-
 		}
 
 		private int GetCurrentPayout()

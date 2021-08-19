@@ -50,6 +50,9 @@ namespace Pant
 			Console.WriteLine("Internal stats");
 			Console.WriteLine(_machine.SerializeStatus());
 			Console.WriteLine("----------------------------------------------------------");
+			Console.WriteLine();
+			Console.WriteLine($"Note that those are also saved to {_machine.StatusFileName}");
+			Console.WriteLine();
 			Console.WriteLine("Press <enter> to continue");
 			Console.ReadLine();
 		}
