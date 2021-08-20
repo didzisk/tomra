@@ -14,12 +14,14 @@ namespace Pant.Tests
 		{
 			AcceptableContainers = new Dictionary<string, ContainerDef>
 			{
-				{"P", new ContainerDef{Code = "P", Name = "Plastic bottle", Price = 2}},
-				{"B", new ContainerDef{Code = "B", Name = "Big plastic bottle", Price = 3}},
-				{"C", new ContainerDef{Code = "C", Name = "Can", Price = 2}}
+				{"P", new ContainerDef{Code = "P", Name = "Plastic bottle", Price = 2, MsToProcess = 0}},
+				{"B", new ContainerDef{Code = "B", Name = "Big plastic bottle", Price = 3, MsToProcess = 0}},
+				{"C", new ContainerDef{Code = "C", Name = "Can", Price = 2, MsToProcess = 0/*speed up the tests*/}}
 			},
 			InverseLotteryChance = (int) Math.Round(1/0.001),
-			LotteryPayout = 10000
+			LotteryPayout = 10000,
+			LotteryTicketPrice = 0.5m
+			
 		};
 
 		[Test]
@@ -33,8 +35,28 @@ namespace Pant.Tests
 					{"G", new ContainerDef{Code = "G", Name = "Gallon Can", Price = 12}}
 				}
 			};
+			var machine = new Machine(s);
 			Assert.That(s.AcceptableContainers.ContainsKey("P"));
 			Assert.That(s.AcceptableContainers.ContainsKey("G"));
+			Assert.That(machine.GetAcceptableContainers(), Does.Contain(new ContainerDef { Code = "P", Name = "Plastic bottle", Price = 2 }));
+		}
+
+		[Test]
+		public void CanDelayAcceptance()
+		{
+			const int msToProcess = 100;
+			var s = new MachineSettings
+			{
+				AcceptableContainers = new Dictionary<string, ContainerDef>
+				{
+					{"G", new ContainerDef{Code = "G", Name = "Gallon Can", Price = 12, MsToProcess = msToProcess}}
+				}
+			};
+			var machine = new Machine(s);
+			var ticks = DateTime.Now.Ticks;
+			machine.AcceptContainer("G");
+			ticks = DateTime.Now.Ticks - ticks;
+			Assert.That(ticks, Is.GreaterThan(TimeSpan.TicksPerMillisecond * msToProcess));
 		}
 
 		[Test]
@@ -57,13 +79,8 @@ namespace Pant.Tests
 			machine.AcceptContainer("C");
 			machine.AcceptContainer("C");
 
-			JsonSerializerOptions serializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
-			{
-				IncludeFields = true, 
-				WriteIndented = true
-			};
-			string serialized = JsonSerializer.Serialize(machine.State, serializerOptions);
-				Console.WriteLine(serialized);
+			string serialized = machine.SerializeStatus();
+			Console.WriteLine(serialized);
 		}
 
 		[Test]
@@ -91,6 +108,8 @@ namespace Pant.Tests
 					x++;
 			}
 			Console.WriteLine($"10000 lotteries gave {x} wins");
+			//med default vinnersjanse er resultatet mellom 5 og 30 gevinster... dårlig business
+			//kravene sier derimot ingenting om forbud mot negativ balanse
 		}
 
 		[Test]
@@ -124,6 +143,26 @@ namespace Pant.Tests
 			var amount = machine.WinLottery();
 			Assert.That(amount, Is.EqualTo(_testMachineSettings.LotteryPayout));
 			Assert.That(machine.State.Balance, Is.EqualTo(5-_testMachineSettings.LotteryPayout));
+		}
+
+		[Test]
+		public void CanSerializeReadableStatus()
+		{
+			var machine = new Machine(_testMachineSettings);
+			machine.AcceptContainer("P");
+			machine.AcceptContainer("B");
+			Console.WriteLine(machine.GetCurrentState());
+		}
+
+		[Test]
+		public void CanGetNumberOfTickets()
+		{
+			var machine = new Machine(_testMachineSettings);
+			machine.AcceptContainer("P");
+			machine.AcceptContainer("B");
+			machine.AcceptContainer("C");
+			var numTickets = machine.GetNumTickets();
+			Assert.That(numTickets, Is.EqualTo(14));
 		}
 
 
